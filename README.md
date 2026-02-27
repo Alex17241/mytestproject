@@ -1,2 +1,0 @@
-# mytestproject
-Test projects
