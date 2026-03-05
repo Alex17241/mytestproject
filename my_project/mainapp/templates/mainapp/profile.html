@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% block title %}{{ profile_user.username }} — Instango{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <header class="profile-header">
+
+        <div class="profile-avatar-wrap">
+            {% if profile.avatar %}
+                <img src="{{ profile.avatar.url }}"
+                     alt="{{ profile_user.username }}" class="profile-avatar">
+            {% else %}
+                <div class="profile-avatar-placeholder">
+                    {{ profile_user.username|first|upper }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="profile-info">
+            <div class="profile-username">
+                <span>{{ profile_user.username }}</span>
+                {% if user == profile_user %}
+                <a href="{% url 'mainapp:profile_edit' %}" class="btn btn-outline btn-sm">
+                    <i class="fa-solid fa-gear"></i> Редактировать
+                </a>
+                {% endif %}
+            </div>
+
+            <div class="profile-stats">
+                <div class="profile-stat">
+                    <div class="profile-stat-count">{{ posts_count }}</div>
+                    <div class="profile-stat-label">
+                        публикаци{{ posts_count|pluralize:"я,и,й" }}
+                    </div>
+                </div>
+            </div>
+
+            {% if profile.bio %}
+            <p class="profile-bio">{{ profile.bio }}</p>
+            {% endif %}
+
+            <p style="font-size:.78rem;color:var(--text-secondary);margin-top:.5rem;">
+                <i class="fa-regular fa-calendar"></i>
+                Зарегистрирован: {{ profile.created_at|date:"F Y" }}
+            </p>
+        </div>
+
+    </header>
+
+    <!-- Вкладки -->
+    <div style="border-top:1px solid var(--border);margin-bottom:1.5rem;
+                display:flex;justify-content:center;gap:2.5rem;">
+        <div style="padding:.75rem 0;border-top:2px solid var(--text-primary);
+                    font-size:.825rem;font-weight:700;letter-spacing:.08em;
+                    text-transform:uppercase;display:flex;align-items:center;gap:.5rem;">
+            <i class="fa-solid fa-border-all"></i> Публикации
+        </div>
+    </div>
+
+    {% if posts %}
+    <div class="posts-grid">
+        {% for post in posts %}
+        <a href="{% url 'mainapp:post_detail' pk=post.pk %}" class="post-card"
+           aria-label="{{ post.title }}">
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" loading="lazy">
+            {% else %}
+                <div class="post-card-no-image">
+                    <i class="fa-regular fa-image"></i>
+                    <span class="card-title">{{ post.title }}</span>
+                </div>
+            {% endif %}
+            <div class="post-card-overlay">
+                <span class="post-card-stat">
+                    <i class="fa-solid fa-heart"></i> {{ post.get_likes_count }}
+                </span>
+                <span class="post-card-stat">
+                    <i class="fa-solid fa-comment"></i> {{ post.get_comments_count }}
+                </span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if posts.has_other_pages %}
+    <nav class="pagination-wrap">
+        {% if posts.has_previous %}
+            <a href="?page={{ posts.previous_page_number }}" class="page-link-btn">
+                <i class="fa-solid fa-chevron-left"></i>
+            </a>
+        {% else %}
+            <span class="page-link-btn disabled">
+                <i class="fa-solid fa-chevron-left"></i>
+            </span>
+        {% endif %}
+
+        {% for num in posts.paginator.page_range %}
+            {% if num == posts.number %}
+                <span class="page-link-btn active">{{ num }}</span>
+            {% elif num > posts.number|add:"-3" and num < posts.number|add:"3" %}
+                <a href="?page={{ num }}" class="page-link-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+
+        {% if posts.has_next %}
+            <a href="?page={{ posts.next_page_number }}" class="page-link-btn">
+                <i class="fa-solid fa-chevron-right"></i>
+            </a>
+        {% else %}
+            <span class="page-link-btn disabled">
+                <i class="fa-solid fa-chevron-right"></i>
+            </span>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fa-regular fa-image"></i></div>
+        <h3 class="empty-state-title">Публикаций пока нет</h3>
+        {% if user == profile_user %}
+        <p class="empty-state-text">Поделитесь своим первым фото!</p>
+        <a href="{% url 'mainapp:post_create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Создать публикацию
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

@@ -11,21 +11,16 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 import os
 from pathlib import Path
-
+from dotenv import load_dotenv
 from django.conf.global_settings import STATICFILES_DIRS
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+load_dotenv()
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-z4=b^^ni&-#p9-kz6i-l!v)cb%+g%7zw+4cxekr7$66o9f-sr8'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+SECRET_KEY = os.getenv('SECRET_KEY')
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*',]
 
@@ -61,6 +56,7 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -105,9 +101,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'ru-ru'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Samarkand'
 
 USE_I18N = True
 
@@ -126,3 +122,12 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'mainapp/media')
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static')
 ]
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+POSTS_PER_PAGE = 9
+COMMENTS_PER_PAGE = 10
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'

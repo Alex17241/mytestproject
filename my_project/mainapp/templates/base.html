@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Instango{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'fontawesome/css/all.min.css' %}">
+
+    <!--
+    Для локального подключения FontAwesome (после скачивания):
+    <link rel="stylesheet" href="{% static 'fonts/fontawesome/css/all.min.css' %}">
+    -->
+
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    {% include "components/navbar.html" %}
+
+    {% if messages %}
+    <div class="messages-container" style="margin-top:1rem;">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'info' }}">
+            {% if message.tags == 'success' %}
+                <i class="fa-solid fa-circle-check"></i>
+            {% elif message.tags == 'error' %}
+                <i class="fa-solid fa-circle-xmark"></i>
+            {% elif message.tags == 'warning' %}
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            {% else %}
+                <i class="fa-solid fa-circle-info"></i>
+            {% endif %}
+            {{ message }}
+            <button class="alert-close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    {% include "components/footer.html" %}
+
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

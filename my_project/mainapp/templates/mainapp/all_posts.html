@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block title %}Все публикации — Instango{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fa-solid fa-compass" style="color:var(--primary)"></i>
+            Публикации
+        </h1>
+    </div>
+
+    <form action="" method="get">
+        <div class="search-bar-big">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" name="q" value="{{ search_query }}"
+                   placeholder="Поиск по заголовку, описанию или автору...">
+            <button type="submit" class="btn btn-primary btn-sm">Найти</button>
+        </div>
+    </form>
+
+    {% if search_query %}
+    <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:1rem;">
+        Результаты по запросу <strong>«{{ search_query }}»</strong>:
+        {{ page_obj.paginator.count }} публикаци{{ page_obj.paginator.count|pluralize:"я,и,й" }}
+        &mdash;
+        <a href="{% url 'mainapp:all_posts' %}" style="color:var(--primary);">Сбросить</a>
+    </p>
+    {% else %}
+    <p style="color:var(--text-secondary);font-size:.875rem;margin-bottom:1rem;">
+        Всего: <strong>{{ page_obj.paginator.count }}</strong>
+        публикаци{{ page_obj.paginator.count|pluralize:"я,и,й" }}
+    </p>
+    {% endif %}
+
+    {% if posts %}
+    <div class="posts-grid">
+        {% for post in posts %}
+        <a href="{% url 'mainapp:post_detail' pk=post.pk %}" class="post-card">
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" loading="lazy">
+            {% else %}
+                <div class="post-card-no-image">
+                    <i class="fa-regular fa-image"></i>
+                    <span class="card-title">{{ post.title }}</span>
+                </div>
+            {% endif %}
+            <div class="post-card-overlay">
+                <span class="post-card-stat">
+                    <i class="fa-solid fa-heart"></i> {{ post.get_likes_count }}
+                </span>
+                <span class="post-card-stat">
+                    <i class="fa-solid fa-comment"></i> {{ post.get_comments_count }}
+                </span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+
+    {% if page_obj.has_other_pages %}
+    <nav class="pagination-wrap">
+        {% if page_obj.has_previous %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ page_obj.previous_page_number }}"
+               class="page-link-btn"><i class="fa-solid fa-chevron-left"></i></a>
+        {% else %}
+            <span class="page-link-btn disabled"><i class="fa-solid fa-chevron-left"></i></span>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if num == page_obj.number %}
+                <span class="page-link-btn active">{{ num }}</span>
+            {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                <a href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ num }}"
+                   class="page-link-btn">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?{% if search_query %}q={{ search_query }}&{% endif %}page={{ page_obj.next_page_number }}"
+               class="page-link-btn"><i class="fa-solid fa-chevron-right"></i></a>
+        {% else %}
+            <span class="page-link-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>
+        {% endif %}
+    </nav>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fa-solid fa-search"></i></div>
+        <h3 class="empty-state-title">
+            {% if search_query %}Ничего не найдено{% else %}Публикаций пока нет{% endif %}
+        </h3>
+        <p class="empty-state-text">
+            {% if search_query %}
+                <a href="{% url 'mainapp:all_posts' %}" style="color:var(--primary)">Посмотреть все</a>
+            {% endif %}
+        </p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'mainapp:post_create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Создать публикацию
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

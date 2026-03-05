@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+{% block title %}{{ post.title }} — Instango{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    <nav style="font-size:.85rem;color:var(--text-secondary);margin-bottom:1rem;">
+        <a href="{% url 'mainapp:home' %}" style="color:var(--text-secondary)">
+            <i class="fa-solid fa-house"></i>
+        </a>
+        <span style="margin:0 .5rem">/</span>
+        <a href="{% url 'mainapp:all_posts' %}" style="color:var(--text-secondary)">Публикации</a>
+        <span style="margin:0 .5rem">/</span>
+        <span>{{ post.title|truncatechars:40 }}</span>
+    </nav>
+
+    <div class="post-detail-container">
+
+        <!-- Изображение -->
+        <div class="post-detail-image-wrap">
+            {% if post.image %}
+                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="post-detail-image">
+            {% else %}
+                <div class="post-detail-image-placeholder">
+                    <i class="fa-regular fa-image"></i>
+                    <p style="opacity:.7">Нет изображения</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Сайдбар -->
+        <aside class="post-detail-sidebar">
+
+            <!-- Автор -->
+            <div class="post-detail-header">
+                <a href="{% url 'mainapp:profile' username=post.author.username %}"
+                   class="feed-post-author" style="text-decoration:none">
+                    {% if post.author.profile.avatar %}
+                        <img src="{{ post.author.profile.avatar.url }}"
+                             alt="{{ post.author.username }}" class="author-avatar">
+                    {% else %}
+                        <span class="author-avatar-placeholder">
+                            {{ post.author.username|first|upper }}
+                        </span>
+                    {% endif %}
+                    <span class="author-name">{{ post.author.username }}</span>
+                </a>
+                {% if user == post.author or user.is_staff %}
+                <div style="display:flex;gap:.5rem;">
+                    <a href="{% url 'mainapp:post_edit' pk=post.pk %}"
+                       class="nav-icon-btn" style="font-size:.95rem;">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </a>
+                    <a href="{% url 'mainapp:post_delete' pk=post.pk %}"
+                       class="nav-icon-btn" style="font-size:.95rem;">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Заголовок и текст -->
+            <div class="post-detail-title-area">
+                <h1 class="post-detail-title">{{ post.title }}</h1>
+                {% if post.content %}
+                <p class="post-detail-body-text">{{ post.content }}</p>
+                {% endif %}
+                <p class="post-detail-meta">
+                    <i class="fa-regular fa-clock"></i>
+                    {{ post.created_at|date:"d F Y, H:i" }}
+                </p>
+            </div>
+
+            <!-- Действия -->
+            <div class="post-detail-actions">
+                <button class="action-btn like-btn {% if is_liked %}liked{% endif %}"
+                        data-post-id="{{ post.pk }}">
+                    <i class="{% if is_liked %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                </button>
+                <a href="#comment-form" class="action-btn">
+                    <i class="fa-regular fa-comment"></i>
+                </a>
+            </div>
+
+            <div class="post-likes-count">
+                <span class="like-count">{{ likes_count }}</span>
+                отметк{{ likes_count|pluralize:"а,и," }} «Нравится»
+            </div>
+
+            <!-- Комментарии -->
+            <section class="comments-section" id="comments">
+
+                <div class="comments-section-title">
+                    <i class="fa-regular fa-comments"></i>
+                    Комментарии
+                    <span class="badge badge-gray">{{ post.get_comments_count }}</span>
+                </div>
+
+                {% if comments %}
+                    {% for comment in comments %}
+                    <div class="comment-item">
+                        <a href="{% url 'mainapp:profile' username=comment.author.username %}">
+                            {% if comment.author.profile.avatar %}
+                                <img src="{{ comment.author.profile.avatar.url }}"
+                                     alt="{{ comment.author.username }}"
+                                     style="width:30px;height:30px;border-radius:50%;object-fit:cover;">
+                            {% else %}
+                                <span class="comment-avatar">
+                                    {{ comment.author.username|first|upper }}
+                                </span>
+                            {% endif %}
+                        </a>
+                        <div class="comment-body">
+                            <a href="{% url 'mainapp:profile' username=comment.author.username %}"
+                               class="comment-username">{{ comment.author.username }}</a>
+                            <p class="comment-text">{{ comment.content }}</p>
+                            <time class="comment-time">{{ comment.created_at|timesince }} назад</time>
+                        </div>
+                    </div>
+                    {% endfor %}
+
+                    <!-- Пагинация комментариев -->
+                    {% if comments.has_other_pages %}
+                    <nav style="display:flex;justify-content:center;gap:.35rem;margin-top:.75rem;">
+                        {% if comments.has_previous %}
+                            <a href="?page={{ comments.previous_page_number }}#comments"
+                               class="page-link-btn" style="width:30px;height:30px;font-size:.75rem;">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        {% endif %}
+                        {% for num in comments.paginator.page_range %}
+                            {% if num == comments.number %}
+                                <span class="page-link-btn active"
+                                      style="width:30px;height:30px;font-size:.75rem;">{{ num }}</span>
+                            {% elif num > comments.number|add:"-3" and num < comments.number|add:"3" %}
+                                <a href="?page={{ num }}#comments"
+                                   class="page-link-btn" style="width:30px;height:30px;font-size:.75rem;">
+                                    {{ num }}</a>
+                            {% endif %}
+                        {% endfor %}
+                        {% if comments.has_next %}
+                            <a href="?page={{ comments.next_page_number }}#comments"
+                               class="page-link-btn" style="width:30px;height:30px;font-size:.75rem;">
+                                <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        {% endif %}
+                    </nav>
+                    {% endif %}
+
+                {% else %}
+                <p style="color:var(--text-secondary);font-size:.85rem;text-align:center;padding:1.5rem 0;">
+                    <i class="fa-regular fa-comment-dots"
+                       style="font-size:1.5rem;display:block;margin-bottom:.5rem;"></i>
+                    Будьте первым, кто прокомментирует!
+                </p>
+                {% endif %}
+
+            </section>
+
+            <!-- Форма комментария -->
+            <div class="comment-form-area" id="comment-form">
+                {% if user.is_authenticated %}
+                <form method="post" action="{% url 'mainapp:post_detail' pk=post.pk %}">
+                    {% csrf_token %}
+                    {{ form.content }}
+                    {% if form.content.errors %}
+                    <div class="form-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        {{ form.content.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                    <div class="comment-form-actions">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fa-regular fa-paper-plane"></i> Отправить
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <p style="font-size:.875rem;color:var(--text-secondary);text-align:center;">
+                    <a href="{% url 'mainapp:login' %}" style="color:var(--primary);font-weight:600;">
+                        Войдите</a>, чтобы оставить комментарий
+                </p>
+                {% endif %}
+            </div>
+
+        </aside>
+    </div>
+</div>
+{% endblock %}

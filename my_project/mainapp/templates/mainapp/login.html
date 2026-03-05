@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Вход — Instango{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:1.25rem;width:100%;max-width:400px;">
+
+        <div class="auth-card" style="width:100%;">
+            <div class="auth-logo">
+                <div class="auth-logo-text">Instango</div>
+            </div>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label class="form-label" for="{{ form.username.id_for_label }}">
+                        <i class="fa-regular fa-user" style="color:var(--text-secondary)"></i>
+                        {{ form.username.label }}
+                    </label>
+                    {{ form.username }}
+                    {% if form.username.errors %}
+                    <div class="form-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        {{ form.username.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.35rem;">
+                        <label class="form-label" for="{{ form.password.id_for_label }}" style="margin:0;">
+                            <i class="fa-solid fa-lock" style="color:var(--text-secondary)"></i>
+                            {{ form.password.label }}
+                        </label>
+                        <a href="#" style="font-size:.78rem;color:var(--primary);">Забыли пароль?</a>
+                    </div>
+                    {{ form.password }}
+                    {% if form.password.errors %}
+                    <div class="form-error">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        {{ form.password.errors|join:", " }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-error">
+                    <i class="fa-solid fa-circle-xmark"></i>
+                    {{ form.non_field_errors|join:", " }}
+                </div>
+                {% endif %}
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg" style="margin-top:.5rem;">
+                    <i class="fa-solid fa-right-to-bracket"></i> Войти
+                </button>
+            </form>
+
+            <div class="auth-divider">ИЛИ</div>
+            <a href="{% url 'mainapp:home' %}" class="btn btn-outline" style="width:100%;">
+                <i class="fa-solid fa-house"></i> Продолжить без входа
+            </a>
+        </div>
+
+        <div class="auth-card" style="width:100%;padding:1.25rem 2rem;text-align:center;">
+            <p style="font-size:.9rem;color:var(--text-secondary);">
+                Нет аккаунта?
+                <a href="{% url 'mainapp:register' %}" style="color:var(--primary);font-weight:700;">
+                    Зарегистрироваться
+                </a>
+            </p>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,172 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Лента{% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% if not user.is_authenticated %}
+    <div style="text-align:center;padding:3rem 0 2.5rem;max-width:560px;margin:0 auto;">
+        <div style="font-size:4rem;margin-bottom:1rem;">📸</div>
+        <h1 style="font-size:2.2rem;font-weight:800;margin-bottom:.75rem;">
+            <span class="text-gradient">Instango</span>
+        </h1>
+        <p style="color:var(--text-secondary);font-size:1.05rem;margin-bottom:2rem;">
+            Делитесь фотографиями с друзьями. Подписывайтесь на интересных людей.
+        </p>
+        <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+            <a href="{% url 'mainapp:register' %}" class="btn btn-primary btn-lg">
+                <i class="fa-solid fa-user-plus"></i> Зарегистрироваться
+            </a>
+            <a href="{% url 'mainapp:login' %}" class="btn btn-outline btn-lg">
+                <i class="fa-solid fa-right-to-bracket"></i> Войти
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+        <div>
+            <h2 style="font-size:1.1rem;font-weight:700;">
+                <i class="fa-solid fa-house" style="color:var(--primary)"></i>
+                Лента публикаций
+            </h2>
+            <p class="text-muted" style="font-size:.82rem;">
+                Всего {{ page_obj.paginator.count }} публикаци{{ page_obj.paginator.count|pluralize:"я,и,й" }}
+            </p>
+        </div>
+        {% if user.is_authenticated %}
+        <a href="{% url 'mainapp:post_create' %}" class="btn btn-primary btn-sm">
+            <i class="fa-solid fa-plus"></i> Создать
+        </a>
+        {% endif %}
+    </div>
+
+    {% if posts %}
+        {% for post in posts %}
+        <article class="feed-post">
+
+            <div class="feed-post-header">
+                <a href="{% url 'mainapp:profile' username=post.author.username %}"
+                   class="feed-post-author">
+                    {% if post.author.profile.avatar %}
+                        <img src="{{ post.author.profile.avatar.url }}"
+                             alt="{{ post.author.username }}" class="author-avatar">
+                    {% else %}
+                        <span class="author-avatar-placeholder">
+                            {{ post.author.username|first|upper }}
+                        </span>
+                    {% endif %}
+                    <div>
+                        <div class="author-name">{{ post.author.username }}</div>
+                        <div class="post-time">{{ post.created_at|timesince }} назад</div>
+                    </div>
+                </a>
+                {% if user == post.author or user.is_staff %}
+                <div style="display:flex;gap:.25rem;">
+                    <a href="{% url 'mainapp:post_edit' pk=post.pk %}"
+                       class="nav-icon-btn" style="font-size:1rem;">
+                        <i class="fa-regular fa-pen-to-square"></i>
+                    </a>
+                    <a href="{% url 'mainapp:post_delete' pk=post.pk %}"
+                       class="nav-icon-btn" style="font-size:1rem;">
+                        <i class="fa-regular fa-trash-can"></i>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if post.image %}
+            <a href="{% url 'mainapp:post_detail' pk=post.pk %}">
+                <img src="{{ post.image.url }}" alt="{{ post.title }}"
+                     class="feed-post-image" loading="lazy">
+            </a>
+            {% endif %}
+
+            <div class="feed-post-actions">
+                <button class="action-btn like-btn {% if post.pk in liked_posts %}liked{% endif %}"
+                        data-post-id="{{ post.pk }}">
+                    <i class="{% if post.pk in liked_posts %}fa-solid{% else %}fa-regular{% endif %} fa-heart"></i>
+                </button>
+                <a href="{% url 'mainapp:post_detail' pk=post.pk %}#comments" class="action-btn">
+                    <i class="fa-regular fa-comment"></i>
+                </a>
+                <a href="{% url 'mainapp:post_detail' pk=post.pk %}" class="action-btn">
+                    <i class="fa-regular fa-paper-plane"></i>
+                </a>
+            </div>
+
+            <div class="feed-post-body">
+                <p style="font-size:.875rem;font-weight:700;margin-bottom:.2rem;">
+                    <span class="like-count">{{ post.get_likes_count }}</span>
+                    отметк{{ post.get_likes_count|pluralize:"а,и," }} «Нравится»
+                </p>
+                <p class="feed-post-title">
+                    <a href="{% url 'mainapp:post_detail' pk=post.pk %}">{{ post.title }}</a>
+                </p>
+                {% if post.content %}
+                <p class="feed-post-content">
+                    <strong>{{ post.author.username }}</strong> {{ post.content }}
+                </p>
+                {% endif %}
+                {% with count=post.get_comments_count %}
+                {% if count %}
+                <a href="{% url 'mainapp:post_detail' pk=post.pk %}#comments"
+                   class="text-muted" style="font-size:.875rem;display:block;margin-top:.35rem;">
+                    Посмотреть все {{ count }} коммент{{ count|pluralize:"арий,ария,ариев" }}
+                </a>
+                {% endif %}
+                {% endwith %}
+                <time style="font-size:.72rem;color:var(--text-secondary);display:block;margin-top:.35rem;">
+                    {{ post.created_at|date:"d F Y" }}
+                </time>
+            </div>
+
+        </article>
+        {% endfor %}
+
+        {% if page_obj.has_other_pages %}
+        <nav class="pagination-wrap">
+            {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}" class="page-link-btn">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </a>
+            {% else %}
+                <span class="page-link-btn disabled"><i class="fa-solid fa-chevron-left"></i></span>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if num == page_obj.number %}
+                    <span class="page-link-btn active">{{ num }}</span>
+                {% elif num > page_obj.number|add:"-3" and num < page_obj.number|add:"3" %}
+                    <a href="?page={{ num }}" class="page-link-btn">{{ num }}</a>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="page-link-btn">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </a>
+            {% else %}
+                <span class="page-link-btn disabled"><i class="fa-solid fa-chevron-right"></i></span>
+            {% endif %}
+        </nav>
+        {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <div class="empty-state-icon"><i class="fa-regular fa-image"></i></div>
+        <h3 class="empty-state-title">Публикаций пока нет</h3>
+        <p class="empty-state-text">Будьте первым, кто поделится чем-то интересным!</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'mainapp:post_create' %}" class="btn btn-primary">
+            <i class="fa-solid fa-plus"></i> Создать первую публикацию
+        </a>
+        {% else %}
+        <a href="{% url 'mainapp:register' %}" class="btn btn-primary">
+            <i class="fa-solid fa-user-plus"></i> Присоединиться
+        </a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}
